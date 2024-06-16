@@ -279,7 +279,7 @@ void alta_jugador() {
 	printf("\n¿Está activo? (s/n): ");
 	char activo;
 	scanf(" %c", &activo);
-	nuevo.activo = (activo == 's');
+	nuevo.activo = (activo == 's'|| activo == 'S');
 	nuevo.partidas_ganadas = 0;
 	jugadores[num_jugadores++] = nuevo;
 	printf("\nJugador %s registrado exitosamente.\n", nuevo.alias);
@@ -311,7 +311,7 @@ void modificar_jugador() {
 			printf("\n¿Está activo? (s/n) (%c): ", jugador->activo ? 's' : 'n');
 			char activo;
 			scanf(" %c", &activo);
-			jugador->activo = (activo == 's');
+			jugador->activo = (activo == 's'|| activo == 'S');
 			printf("\nDatos de %s modificados exitosamente.\n", alias);
 			return;
 		}
