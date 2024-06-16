@@ -1,21 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
+
 #define FILAS 8
 #define COLUMNAS 8
 #define MINAS 16
 #define CASILLAS_SIN_MINAS 48
 #define MAX_MARCADAS 16
+#define CI_LEN 8
 
-//BUSCAMINAS.H (Cabezales)
-
-char tablero[FILAS][COLUMNAS];
-char tablero_oculto[FILAS][COLUMNAS];
-int marcadas = 0;
-int exploradas = 0; //Inicializamos las exploradas para que luego de la 1er exploracion se coloquen las minas
-int primera_jugada = 1; // Variable para controlar si es la primera jugada
-int game_over = 0; // Variable para indicar si el juego ha terminado
-
+int validar_ci(char ci[]);
+int validar_fecha(char fecha[]);
+int alias_unico(char alias[]);
+void alta_jugador();
+void modificar_jugador();
+void listar_jugadores();
+void listar_partidas();
 void inicializar_tablero();
 void colocar_minas(int primera_fila, int primera_columna);
 void mostrar_tablero();
@@ -24,152 +25,325 @@ void explorar(int fila, int columna);
 void marcar(int fila, int columna);
 int es_casilla_explorada(int fila, int columna);
 int es_casilla_adyacente_explorada(int fila, int columna);
-void buscar(int fila, int columna) ;
-void mostrar_tablero_completo();
-void limpiar_buffer(); 
+void buscar(int fila, int columna);
+void rendirse();
+void limpiar_buffer();
+void jugar();
+void reiniciar_estado_del_juego();  // Función para reiniciar el estado del juego
+void volver_al_menu_principal();
 
-//Laboratorio parte 2
+typedef struct {
+	char ci[CI_LEN + 1];
+	char fecha_nacimiento[11];
+	char nombre[50];
+	char apellido[50];
+	char alias[50];
+	int activo;
+	int partidas_ganadas;
+} Jugador;
 
-typedef struct{ //estructura que almacena una fecha
-	int dia;
-	int mes;
-	int anio;
-}date;
-
-
-typedef struct{ //estructura que almacena una cadena de caracteres y su largo
-	char letra[PALABRA];
-	int largo;
-}word;
-
-
-typedef struct{ //almacena una cedula de identidad y su largo
-	int cedula[CI];
-	int largoCi;
-}id;
-
-typedef struct{ //estructura que almacena los jugadores registrados del juego
-	word alias;
-	word nombre;
-	word apellido;
-	id cedula;
-	date fecha_nacimiento;
-	char status; //A = Activo // I = Inactivo
-}player;
-
-//Prototipos de las funciones:
-
-//Muestra las opciones del menú principal
-int opciones_menu();
-
-//Muestra las opciones del menú de gestión de usuarios
-int opciones_usuarios();
-
-//Muestra las opciones del menú de consultas
-int opciones_consultas();
-
-//Solicita al usuario el ingreso de una palabra de hasta 15 caracteres como máximo
-word pedir_palabra();
-
-//Solicita el año de nacimiento del jugador en formato(dd-mm-aaaa)
-date pedir_fecha();
-
-//Solicita una cedula de jugador de 8 digitos, sin puntos ni guiones
-id pedir_cedula();
-
-//Función que comprueba que se haya ingresado una fecha valida
-int validar_fecha(date birthdate);
-
-//Función que verifica si la cedula ingresada de un jugador es válida
-int validar_ci(id document);
-
-//busca si hay algun jugador con el mismo alias ingresado, falso retorna -1. De lo contrario retorna la pos del jugador
-int buscar_jugador(player jugadores[], int pos_players, word alias_aux);
-
-//retorna 0 si encuentra un alias igual al auxiliar o retorna 1 si no encuentra igualdad
-int comparar_alias(word alias, word alias_aux);
-
-//Solicita los datos de un jugador y los guarda en el arreglo de tipo player
-void registrar_jugador(player players[], int *pos_players);
-
-//Solicita el alias de un jugador y si existe, lo marca como inactivo
-void baja_jugador(player players[], int pos_players);
-
-//Solicita al usuario si desea guardar los cambios en la modificación de usuario
-char save_confirm();
-
-//Solicita al usuario que ingrese alias de un jugador, y si existe, permite modificar sus datos
-void modificar_jugador(player players[], int pos_players);
-
-//Imprime en pantalla una cedula recibida por párametro
-void mostrar_cedula(id document);
-
-//Imprime en pantalla una cadena de caracteres recibida por párametro
-void mostrar_palabra(word cadena);
-
-//Muestra una lista de los jugadores activos con sus respectivos datos
-void player_list(player players[], int pos_players);
-
-//Imprime en pantalla una fecha recibida por parámetro
-void mostrar_fecha(date fecha);
-
-//Muestra las victorias de cada jugador en una partida
-void mostrar_resultado(int winsJ1, int winsJ2);
-
-
-//MAIN.CPP(Ejecucion)
+typedef struct {
+	char fecha[20];
+	char alias[50];
+	char resultado[20];
+} Partida;
 
 int main() {
-	
-	srand(time(NULL)); // Inicializa la semilla para n�meros aleatorios
-	inicializar_tablero();
-	printf("�Bienvenido al Buscaminas!\n");
-	printf("Para jugar, elige una opci�n seguida de una fila (A-H) y una columna (A-H).\n");
-	printf("Las opciones son: (E)xplorar, (M)arcar y (B)uscar.\n");
-	mostrar_tablero();
-	
-	while (exploradas < CASILLAS_SIN_MINAS && !game_over) { // Mientras sea distinto a game_over el juego continua
-		
-		char opcion;
-		char fila;
-		char columna;
-		printf("Elige una opci�n: ");
-		scanf(" %c", &opcion);
-		scanf(" %c", &fila);
-		scanf(" %c", &columna);
-		limpiar_buffer(); // Limpiar el b�fer de entrada despu�s de leer las entradas
-		fila -= 'A'; // Convertir de letra A-H a rango 0-7
-		columna -= 'A'; // Convertir de letra A-H a rango 0-7
-		
+	int opcion;
+	do {
+		printf("\nMenú principal:\n");
+		printf("\n1. Gestionar usuario\n");
+		printf("2. Consultas\n");
+		printf("3. Jugar\n");
+		printf("4. Salir\n");
+		printf("\nSeleccione una opción: ");
+		scanf("%d", &opcion);
+		limpiar_buffer();
 		switch (opcion) {
-		case 'E':
-			explorar(fila, columna);
+		case 1:
+			printf("\n1. Alta de jugador\n");
+			printf("2. Modificación de jugador\n");
+			printf("3. Volver al menú principal\n");
+			int sub_opcion;
+			printf("\nSeleccione una opción: ");
+			scanf("%d", &sub_opcion);
+			limpiar_buffer();
+			if (sub_opcion == 1) {
+				alta_jugador();
+			} else if (sub_opcion == 2) {
+				modificar_jugador();
+			}else if (sub_opcion == 3){
+				volver_al_menu_principal();
+			}else {
+				printf("\nOpción inválida\n");
+			}
 			break;
-		case 'M':
-			marcar(fila, columna);
+		case 2:
+			printf("\n1. Listado de jugadores\n");
+			printf("2. Listado de todas las partidas\n");
+			printf("3. Volver al menú principal\n");
+			printf("\nSeleccione una opción: ");
+			scanf("%d", &sub_opcion);
+			limpiar_buffer();
+			if (sub_opcion == 1) {
+				listar_jugadores();
+			} else if (sub_opcion == 2) {
+				listar_partidas();
+			}else if(sub_opcion == 3){
+				volver_al_menu_principal();
+			}else {
+				printf("\nOpción inválida\n");
+			}
 			break;
-		case 'B':
-			buscar(fila, columna);
+		case 3:
+			jugar();
+			break;
+		case 4:
+			printf("\nSaliendo del programa.\n");
 			break;
 		default:
-			printf("Opci�n inv�lida\n");
+			printf("\nOpción inválida\n");
 		}
-		mostrar_tablero();
-	}
-	
-	if (exploradas == CASILLAS_SIN_MINAS) {
-		// El jugador gan�
-		printf("�Pfff... fue pura suerte, la pr�xima no ser� tan f�cil!\n");
-	} else if (game_over) {
-		// El jugador perdi�
-		printf("���� PERDISTE !!!! Suerte la pr�xima, se nota que la necesitas.\n");
-	}
+	} while (opcion != 4);
 	return 0;
 }
 
-//BUSCAMINAS.CPP (Funciones)
+Jugador jugadores[100];
+int num_jugadores = 0;
+Partida partidas[100];
+int num_partidas = 0;
+char tablero[FILAS][COLUMNAS];
+char tablero_oculto[FILAS][COLUMNAS];
+int marcadas = 0;
+int exploradas = 0;
+int primera_jugada = 1;
+int game_over = 0;
 
-//Inicializamos el tablero
+int validar_ci(char ci[]) {
+	// Verificar la longitud de la cédula
+	if (strlen(ci) != CI_LEN) {
+		printf("CI incompleta. Intente nuevamente: ");
+		return 0;
+	}
+	
+	// Verificar que todos los caracteres sean dígitos
+	for (int i = 0; i < CI_LEN; i++) {
+		if (ci[i] < '0' || ci[i] > '9') {
+			printf("CI inválida. Intente nuevamente: ");
+			return 0;
+		}
+	}
+	
+	// Calcular el dígito verificador
+	int multiplicador[] = {2, 9, 8, 7, 6, 3, 4};
+	int suma = 0;
+	for (int i = 0; i < CI_LEN - 1; i++) {
+		suma += (ci[i] - '0') * multiplicador[i];
+	}
+	int resto = suma % 10;
+	int dig_verif = (10 - resto) % 10;
+	
+	// Comparar el dígito verificador calculado con el ingresado
+	if (ci[CI_LEN - 1] - '0' == dig_verif) {
+		printf("CI válida.\n");
+		return 1;
+	} else {
+		printf("Dígito verificador inválido. Intente nuevamente: ");
+		return 0;
+	}
+}
+
+/* int validar_fecha(char fecha[]) {
+	int d, m, a;
+	if (sscanf(fecha, "%2d-%2d-%4d", &d, &m, &a) == 3) {
+		// Verificar que los valores estén dentro de rangos válidos
+		if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && a >= 1900 && a <= 9999) {
+			return 1;  // Fecha válida
+		}
+	}
+	return 0;  // Fecha inválida
+}
+*/
+
+/* int validar_fecha(char fecha[]) {
+	int d, m, a, len = strlen(fecha);
+	
+	// Comprobar que la cadena tenga el formato correcto (dd-mm-yyyy)
+	if (len != 10 || fecha[2] != '-' || fecha[5] != '-') {
+		return 0;
+	}
+	
+	// Extraer los valores de día, mes y año
+	d = 10 * (fecha[0] - '0') + (fecha[1] - '0');
+	m = 10 * (fecha[3] - '0') + (fecha[4] - '0');
+	a = 1000 * (fecha[6] - '0') + 100 * (fecha[7] - '0') + 10 * (fecha[8] - '0') + (fecha[9] - '0');
+	
+	// Verificar que los valores estén dentro de rangos válidos
+	if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && a >= 1900 && a <= 9999) {
+		return 1;  // Fecha válida
+	}
+	
+	return 0;  // Fecha inválida
+}*/
+
+int validar_fecha(char fecha[]) {
+	int d, m, a, len = 0;
+	for (; fecha[len] != '\0'; len++);
+	
+	// Comprobar que la cadena tenga el formato correcto (dd-mm-yyyy)
+	if (len!= 10 || fecha[2]!= '-' || fecha[5]!= '-') {
+		return 0;
+	}
+	
+	// Extraer los valores de día, mes y año
+	d = 10 * (fecha[0] - '0') + (fecha[1] - '0');
+	m = 10 * (fecha[3] - '0') + (fecha[4] - '0');
+	a = 1000 * (fecha[6] - '0') + 100 * (fecha[7] - '0') + 10 * (fecha[8] - '0') + (fecha[9] - '0');
+	
+	// Verificar que los valores estén dentro de rangos válidos
+	if (m < 1 || m > 12) {
+		return 0;  // Mes inválido
+	}
+	
+	if (m == 2) {  // Febrero
+		if (a % 4 == 0 && (a % 100!= 0 || a % 400 == 0)) {  // Año bisiesto
+			if (d < 1 || d > 29) {
+				return 0;  // Día inválido
+			}
+		} else {
+			if (d < 1 || d > 28) {
+				return 0;  // Día inválido
+			}
+		}
+	} else if (m == 4 || m == 6 || m == 9 || m == 11) {  // Meses con 30 días
+		if (d < 1 || d > 30) {
+			return 0;  // Día inválido
+		}
+	} else {  // Meses con 31 días
+		if (d < 1 || d > 31) {
+			return 0;  // Día inválido
+		}
+	}
+	
+	return 1;  // Fecha válida
+}
+
+/*int alias_unico(char alias[]) {
+	for (int i = 0; i < num_jugadores; i++) {
+		if (strcmp(jugadores[i].alias, alias) == 0) {
+			return 0;
+		}
+	}
+	return 1;
+}*/
+
+int alias_unico(char alias[]) {
+	for (int i = 0; i < num_jugadores; i++) {
+		int j = 0;
+		while (alias[j]!= '\0' && jugadores[i].alias[j]!= '\0') {
+			if (alias[j]!= jugadores[i].alias[j]) {
+				break;
+			}
+			j++;
+		}
+		if (alias[j] == '\0' && jugadores[i].alias[j] == '\0') {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+void alta_jugador() {
+	Jugador nuevo;
+	printf("\nIngrese CI (8 dígitos): ");
+	scanf("%8s", nuevo.ci);
+	while (!validar_ci(nuevo.ci)) {
+		scanf("%8s", nuevo.ci);
+	}
+	printf("\nIngrese fecha de nacimiento (DD-MM-YYYY): ");
+	scanf("%10s", nuevo.fecha_nacimiento);
+	while (!validar_fecha(nuevo.fecha_nacimiento)) {
+		printf("\nFecha inválida. Ingrese fecha de nacimiento (DD-MM-YYYY): ");
+		scanf("%10s", nuevo.fecha_nacimiento);
+	}
+	printf("\nIngrese nombre: ");
+	scanf("%49s", nuevo.nombre);
+	printf("\nIngrese apellido: ");
+	scanf("%49s", nuevo.apellido);
+	printf("\nIngrese alias: ");
+	scanf("%49s", nuevo.alias);
+	while (!alias_unico(nuevo.alias)) {
+		printf("\nAlias ya en uso. Ingrese otro alias: ");
+		scanf("%49s", nuevo.alias);
+	}
+	printf("\n¿Está activo? (s/n): ");
+	char activo;
+	scanf(" %c", &activo);
+	nuevo.activo = (activo == 's');
+	nuevo.partidas_ganadas = 0;
+	jugadores[num_jugadores++] = nuevo;
+	printf("\nJugador %s registrado exitosamente.\n", nuevo.alias);
+}
+
+void modificar_jugador() {
+	char alias[50];
+	printf("\nIngrese el alias del jugador a modificar: ");
+	scanf("%49s", alias);
+	for (int i = 0; i < num_jugadores; i++) {
+		if (strcmp(jugadores[i].alias, alias) == 0) {
+			Jugador *jugador = &jugadores[i];
+			printf("\nModificando datos de %s\n", alias);
+			printf("\nCI (%s): ", jugador->ci);
+			scanf("%8s", jugador->ci);
+			while (!validar_ci(jugador->ci)) {
+				scanf("%8s", jugador->ci);
+			}
+			printf("\nFecha de nacimiento (%s): ", jugador->fecha_nacimiento);
+			scanf("%10s", jugador->fecha_nacimiento);
+			while (!validar_fecha(jugador->fecha_nacimiento)) {
+				printf("\nFecha inválida. Ingrese fecha de nacimiento (DD-MM-YYYY): ");
+				scanf("%10s", jugador->fecha_nacimiento);
+			}
+			printf("\nNombre (%s): ", jugador->nombre);
+			scanf("%49s", jugador->nombre);
+			printf("\nApellido (%s): ", jugador->apellido);
+			scanf("%49s", jugador->apellido);
+			printf("\n¿Está activo? (s/n) (%c): ", jugador->activo ? 's' : 'n');
+			char activo;
+			scanf(" %c", &activo);
+			jugador->activo = (activo == 's');
+			printf("\nDatos de %s modificados exitosamente.\n", alias);
+			return;
+		}
+	}
+	printf("\nNo se encontró ningún jugador con el alias %s.\n", alias);
+}
+
+void listar_jugadores() {
+	printf("\nListado de jugadores activos:\n");
+	for (int i = 0; i < num_jugadores; i++) {
+		if (jugadores[i].activo) {
+			printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
+		}
+	}
+}
+
+void listar_partidas() {
+	printf("\nListado de todas las partidas:\n");
+	for (int i = 0; i < num_partidas; i++) {
+		printf("\nFecha: %s, Alias: %s, Resultado: %s\n", partidas[i].fecha, partidas[i].alias, partidas[i].resultado);
+	}
+}
+
+void reiniciar_estado_del_juego() {
+	marcadas = 0;
+	exploradas = 0;
+	primera_jugada = 1;
+	game_over = 0;
+	inicializar_tablero();
+}
+
+
 void inicializar_tablero() {
 	for (int i = 0; i < FILAS; i++) {
 		for (int j = 0; j < COLUMNAS; j++) {
@@ -179,13 +353,11 @@ void inicializar_tablero() {
 	}
 }
 
-//Colocamos las minas
 void colocar_minas(int primera_fila, int primera_columna) {
 	int minas_colocadas = 0;
 	while (minas_colocadas < MINAS) {
 		int fila = rand() % FILAS;
 		int columna = rand() % COLUMNAS;
-		// Asegurarse de que la primera jugada no tenga una mina
 		if ((fila != primera_fila || columna != primera_columna) && tablero_oculto[fila][columna]
 			!= 'B') {
 			tablero_oculto[fila][columna] = 'B';
@@ -194,9 +366,8 @@ void colocar_minas(int primera_fila, int primera_columna) {
 	}
 }
 
-//Mostramos tablero
 void mostrar_tablero() {
-	printf("  A B C D E F G H\n");
+	printf("\n  A B C D E F G H\n");
 	for (int i = 0; i < FILAS; i++) {
 		printf("%c ", 'A' + i);
 		for (int j = 0; j < COLUMNAS; j++) {
@@ -206,7 +377,6 @@ void mostrar_tablero() {
 	}
 }
 
-//Revelamos bombas
 void revelar_todas_las_bombas() {
 	for (int i = 0; i < FILAS; i++) {
 		for (int j = 0; j < COLUMNAS; j++) {
@@ -216,37 +386,26 @@ void revelar_todas_las_bombas() {
 		}
 	}
 }
-
-//Opci�n explorar
 void explorar(int fila, int columna) {
-	
-	//En caso de que la opcion salga de los casilleros
 	if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) {
-		printf("Formato de jugada err�neo\n");
+		printf("Formato de jugada erróneo\n");
 		return;
 	}
-	
-	//En caso de que la opcion ya este explorada
 	if (tablero[fila][columna] != '?') {
-		printf("Formato de jugada err�neo\n");
+		printf("Formato de jugada erróneo\n");
 		return;
 	}
 	
-	//Identifica la primer jugada para la colocacion de minas 
 	if (primera_jugada) {
 		colocar_minas(fila, columna);
 		primera_jugada = 0;
 	}
-	
-	//Revela la ubicacion de las bombas en caso de perder, condiciona la variable que indica que perdio el juego
 	if (tablero_oculto[fila][columna] == 'B') {
 		tablero[fila][columna] = 'B';
 		revelar_todas_las_bombas();
 		game_over = 1;
 		return;
 	}
-	
-	//En caso de encontrarse con un 0 revela casilleros adyacentes
 	int minas_adyacentes = 0;
 	for (int i = fila - 1; i <= fila + 1; i++) {
 		for (int j = columna - 1; j <= columna + 1; j++) {
@@ -258,7 +417,6 @@ void explorar(int fila, int columna) {
 	tablero[fila][columna] = minas_adyacentes + '0';
 	exploradas++;
 	
-	// Solo revelar las casillas adyacentes inmediatas seg�n la posici�n (centro, borde, esquina)
 	if (minas_adyacentes == 0) {
 		for (int i = fila - 1; i <= fila + 1; i++) {
 			for (int j = columna - 1; j <= columna + 1; j++) {
@@ -281,34 +439,31 @@ void explorar(int fila, int columna) {
 	}
 }
 
-//Opcion marcar
 void marcar(int fila, int columna) {
 	if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) {
-		printf("Formato de jugada err�neo\n");
+		printf("Formato de jugada erróneo\n");
 		return;
 	}
-	
 	//Marcar el casillero elegido suplantando ? por X
 	if (tablero[fila][columna] == '?' || tablero[fila][columna] == 'X') {
 		if (marcadas < MAX_MARCADAS || tablero[fila][columna] == 'X') {
-			tablero[fila][columna] = (tablero[fila][columna] == '?') ? 'X' : '?'; // REVISARRR
+			tablero[fila][columna] = (tablero[fila][columna] == '?') ? 'X' : '?'; // 
 			marcadas += (tablero[fila][columna] == 'X') ? 1 : -1;
 		} else {
-			printf("No se puede marcar m�s de %d casillas.\n", MAX_MARCADAS);
+			printf("No se puede marcar más de %d casillas.\n", MAX_MARCADAS);
 		}
 	} else {
 		printf("No se puede marcar esta casilla.\n");
 	}
 }
-
 //"Desmonta" los casilleros explorados
 int es_casilla_explorada(int fila, int columna) {
 	if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) {
 		return 0;
 	}
+	
 	return tablero[fila][columna] != '?' && tablero[fila][columna] != 'X';
 }
-
 
 int es_casilla_adyacente_explorada(int fila, int columna) {
 	for (int i = fila - 1; i <= fila + 1; i++) {
@@ -321,21 +476,21 @@ int es_casilla_adyacente_explorada(int fila, int columna) {
 	return 0;
 }
 
-
-//Opci�n buscar 
 void buscar(int fila, int columna) {
 	
 	//En caso de que seleciona una opcion fuera del rango
 	if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) {
-		printf("Formato de jugada err�neo\n");
+		printf("Formato de jugada erróneo\n");
 		return;
 	}
 	
 	//En caso de que seleccione una casilla no explorada
 	if (tablero[fila][columna] == '?' || tablero[fila][columna] == 'X') {
-		printf("Jugada inv�lida: Debes buscar desde una casilla explorada\n");
+		printf("Jugada inválida: Debes buscar desde una casilla explorada\n");
 		return;
 	}
+	
+	
 	
 	//Identifica si existen casilleros marcados adyacentes
 	int minas_marcadas_adyacentes = 0;
@@ -346,24 +501,20 @@ void buscar(int fila, int columna) {
 			}
 		}
 	}
-	
-	//En caso de que no existan minas adyacentes marcadas
 	if (tablero[fila][columna] - '0' != minas_marcadas_adyacentes) {
-		printf("Jugada inv�lida: La cantidad de minas marcadas adyacentes no coincide\n");
+		printf("Jugada inválida: La cantidad de minas marcadas adyacentes no coincide\n");
 		return;
 	}
-	
-	
 	int revelado_ceros[FILAS][COLUMNAS] = {0}; // Matriz para marcar ceros revelados en la primera ronda
-	
 	for (int i = fila - 1; i <= fila + 1; i++) {
 		for (int j = columna - 1; j <= columna + 1; j++) {
-			if (i >= 0 && i < FILAS && j >= 0 && j < COLUMNAS && tablero[i][j] == '?') {
+			if (i >= 0 && i < FILAS && j >= 0 && j < COLUMNAS && tablero[i][j] =='?') {
 				if (tablero_oculto[i][j] == 'B') {
 					revelar_todas_las_bombas();
 					game_over = 1;
 					return;
-				} else {
+				} 
+				else {
 					int minas_adyacentes = 0;
 					for (int x = i - 1; x <= i + 1; x++) {
 						for (int y = j - 1; y <= j + 1; y++) {
@@ -415,326 +566,96 @@ void buscar(int fila, int columna) {
 	}
 }
 
-// Funci�n para limpiar el b�fer de entrada
+
+
+void rendirse() {
+	printf("Usted se ha rendido.\n");
+	revelar_todas_las_bombas();
+	game_over = 1;
+}
+
+void volver_al_menu_principal() {
+	main();
+}
+
+
 void limpiar_buffer() {
-	while(getchar()!='\n'){}
+	while (getchar() != '\n') {}
 }
 
-//Funcion provisoria para ver tablero "desnudo", llamar cuando se desee utilizar.
-void mostrar_tablero_completo() {
-	printf("  A B C D E F G H\n");
-	for (int i = 0; i < FILAS; i++) {
-		printf("%c ", 'A' + i);
-		for (int j = 0; j < COLUMNAS; j++) {
-			if (tablero_oculto[i][j] == 'B') {
-				printf("B ");
-			} else {
-				int minas_adyacentes = 0;
-				for (int x = i - 1; x <= i + 1; x++) {
-					for (int y = j - 1; y <= j + 1; y++) {
-						if (x >= 0 && x < FILAS && y >= 0 && y < COLUMNAS && tablero_oculto[x][y] == 'B') {
-							minas_adyacentes++;
-						}
-					}
-				}
-				printf("%d ", minas_adyacentes);
-			}
-		}
-		printf("\n");
-	}
-}
-
-//Laboratorio parte 2 
-
-int opciones_menu(){
-	int opcion = 0;
-	printf("╔════════════════╗\n");
-	printf("║ Menú principal ║\n");
-	printf("╚════════════════╝\n");
-	printf("  1. Gestionar usuarios\n");
-	printf("  2. Consultas\n");
-	printf("  3. Jugar\n");
-	printf("  4. Salir\n");
-	do{
-		printf("Ingresa una opción(1..4): ");
-		scanf("%d", &opcion);
-		if (opcion < 1 || opcion > 4){
-			printf("La opción que has ingresado no es válida. Inténtalo otra vez.\n");
-		}
-	}
-	while(opcion < 1 || opcion > 4);
-	system("clear");
-	return opcion;
-}
-	
-	
-	int opciones_usuarios(){
-		int opcion = 0;
-		system("clear");
-		printf("╔═════════════════════════════╗\n");
-		printf("║ Menú de Gestión de Usuarios ║\n");
-		printf("╚═════════════════════════════╝\n");
-		printf("  1. Alta de jugador\n");
-		printf("  2. Baja de jugador\n");
-		printf("  3. Modificación de jugador\n");
-		printf("  0. Volver al menú principal\n");
-		do{
-			printf("Ingresa una opción(0..3): ");
-			scanf("%d", &opcion);
-			if (opcion < 0 || opcion > 3){
-				printf("La opción que has ingresado no es válida. Inténtalo otra vez.\n");
-			}
-		}
-		while(opcion < 0 || opcion > 3);
-		system("clear");
-		return opcion;
-	}
-		
-int opciones_consultas(){
-		int opcion = 0;
-			system("clear");
-			printf("╔═══════════════════╗\n");
-			printf("║ Menú de consultas ║\n");
-			printf("╚═══════════════════╝\n");
-			printf("  1. Listado de jugadores\n");
-			printf("  2. Listado de todas las partidas\n");
-			printf("  3. Listado de partidas por jugador\n");
-			printf("  4. Listado de partidas por fecha\n");
-			printf("  0. Volver al menú principal\n");
-			do{
-				printf("Ingresa una opción(0..4): ");
-				scanf("%d", &opcion);
-				if (opcion < 0 || opcion > 4){
-					printf("La opción que has ingresado no es válida. Inténtalo otra vez.\n");
-				}
-			}
-			while(opcion < 0 || opcion > 4);
-			system("clear");
-			return opcion;
-    }
-
-
-
-word pedir_palabra(){
-			word palabra;
-			palabra.largo = 0;
-			for(int i = 1; i <= PALABRA && (palabra.letra[i-1]=getchar())!='\n'; i++){
-				palabra.largo += 1;
-			}
-			return palabra;
-		}
-			
-date pedir_fecha(){
-	date birthdate;
-	int fecha_valida;
-	do{
-		scanf("%d-%d-%d", &birthdate.dia, &birthdate.mes, &birthdate.anio);
-			fecha_valida = validar_fecha(birthdate);
-	}
-		while(fecha_valida != 1);
-		return birthdate;
-			}
-				
-
-id pedir_cedula(){
-id document;
-int ci_valida;
-
-getchar();  //absorbe salto de linea de la selección de opción en menú
-	do{
-		document.largoCi = 0;
-		for(int i = 1; i <= CI && (document.cedula[i-1]=getchar())!=10; i++){
-			document.cedula[i-1] -= 48;
-			document.largoCi += 1;
-	}
-		ci_valida = validar_ci(document); //si la cedula no es válida se pide ingresar una nueva
-		}
-	while(ci_valida != 1);
-	return document;
-	}
-
-
-id pedir_cedula(){
-	id document;
-	int ci_valida;
-	
-	getchar();  //absorbe salto de linea de la selección de opción en menú
-	do{
-		document.largoCi = 0;
-		for(int i = 1; i <= CI && (document.cedula[i-1]=getchar())!=10; i++){
-			document.cedula[i-1] -= 48;
-			document.largoCi += 1;
-		}
-		ci_valida = validar_ci(document); //si la cedula no es válida se pide ingresar una nueva
-	}
-	while(ci_valida != 1);
-	return document;
-}
-	
-	int validar_fecha(date birthdate){
-		int fecha_valida = 1;
-		if(birthdate.anio > 2021){
-			fecha_valida = 3;
-		}
-		else if(birthdate.anio < 1900){
-			fecha_valida = 4;
-		}
-		
-		switch(birthdate.mes){
-		case 2:
-			if(birthdate.dia > 28){
-				fecha_valida = 2;
-			}
+void jugar() {
+	char alias[50];
+	printf("\nIngrese su alias: ");
+	scanf("%49s", alias);
+	int encontrado = 0;
+	for (int i = 0; i < num_jugadores; i++) {
+		if (strcmp(jugadores[i].alias, alias) == 0) {
+			encontrado = 1;
 			break;
-		case 4:
-		case 6:
-		case 9:
-		case 11:
-			if(birthdate.dia > 30){
-				fecha_valida = 2;
-			}
+		}
+	}
+	if (!encontrado) {
+		printf("\nAlias no encontrado. Juego cancelado.\n");
+		return;
+	}
+	srand(time(NULL));
+	reiniciar_estado_del_juego();
+	printf("\n¡Bienvenido al Buscaminas!\n");
+	printf("Para jugar, elige una opción seguida de una fila (A-H) y una columna (A-H).\n");
+	printf("Las opciones son: (E)xplorar, (M)arcar, (B)uscar y (R)endirse.\n");
+	mostrar_tablero();
+	while (exploradas < CASILLAS_SIN_MINAS && !game_over) {
+		char opcion;
+		char fila;
+		char columna;
+		printf("\nElige una opción: ");
+		scanf(" %c", &opcion);
+		if (opcion == 'R') {
+			rendirse();
 			break;
-			
-		case 1:
-		case 3:
-		case 5:
-		case 7:
-		case 8:
-		case 10:
-		case 12:
-			if(birthdate.dia > 31){
-				fecha_valida = 2;
-			}
+		}
+		scanf(" %c %c", &fila, &columna);
+		limpiar_buffer();
+		fila -= 'A';
+		columna -= 'A';
+		switch (opcion) {
+		case 'E':
+			explorar(fila, columna);
 			break;
-			
+		case 'M':
+			marcar(fila, columna);
+			break;
+		case 'B':
+			buscar(fila, columna);
+			break;
 		default:
-			fecha_valida = 0;
-			
+			printf("\nOpción inválida\n");
 		}
-		if(fecha_valida == 0){
-			printf("El mes que ingresaste no es válido. Ingresa fecha nuevamente: ");
-		}
-		else if(fecha_valida == 2){
-			printf("El dia que ingresaste no es válido. Ingresa fecha nuevamente: ");
-		}
-		else if(fecha_valida == 3){
-			printf("¿Acaso vienes del futuro?. Ingresa fecha nuevamente: ");
-		}
-		else if(fecha_valida == 4){
-			printf("No se acepta un año inferior al 1900. Ingresa fecha nuevamente: ");
-		}
-		else{
-			printf("La fecha es válida.\n");
-		}
-		return fecha_valida;
+		mostrar_tablero();
 	}
-
-
-int validar_ci(id document){
-			int multiplicador[] = {2, 9, 8, 7, 6, 3, 4};
-			int resultado = 0;
-			int suma = 0;
-			int resto = 0;
-			int dig_verif = 0;
-			int ci_valida;
-			
-	if(document.largoCi == CI){
-		for(int i = 0; i < CI-1; i++){
-			resultado = multiplicador[i] * document.cedula[i];
-			suma += resultado;
-				}
-		resto = suma % 10;
-		dig_verif = (10 - resto) % 10;
-		
-		if(document.cedula[CI-1] == dig_verif){
-		printf("CI válida.\n");
-		ci_valida = 1; //cedula de identidad válida
-				}
-				else{
-					printf("Digito verificador inválido. Intente nuevamente: ");
-					getchar();
-					ci_valida = 0; //cedula inválida
-				}
+	if (exploradas == CASILLAS_SIN_MINAS) {
+		printf("\n¡Pfff... fue pura suerte, la próxima no será tan fácil!\n");
+	} else if (game_over) {
+		printf("\n¡¡¡¡ PERDISTE !!!! Suerte la próxima, se nota que la necesitas.\n");
+	}
+	
+	// Almacenar la partida
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+	char fecha_partida[20];
+	sprintf(fecha_partida, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+	strcpy(partidas[num_partidas].fecha, fecha_partida);
+	strcpy(partidas[num_partidas].alias, alias);
+	strcpy(partidas[num_partidas].resultado, exploradas == CASILLAS_SIN_MINAS ? "Ganada" : "Perdida");
+	num_partidas++;
+	
+	// Actualizar partidas ganadas si el jugador ganó
+	if (exploradas == CASILLAS_SIN_MINAS) {
+		for (int i = 0; i < num_jugadores; i++) {
+			if (strcmp(jugadores[i].alias, alias) == 0) {
+				jugadores[i].partidas_ganadas++;
+				break;
 			}
-			else{
-				printf("CI incompleta. Intente nuevamente: ");
-				ci_valida = 0; //cedula inválida
-			}
-			return ci_valida;
 		}
-
-
-			int buscar_jugador(player jugadores[], int pos_players, word alias_aux){
-				int i;
-				for(i = 0; i < pos_players; i++){
-					if(comparar_alias(jugadores[i].alias, alias_aux) == 0){
-						return i;
-					}
-				}
-				return -1; //si no se encuentra jugador con el mismo alias que "alias_aux"
-			}
-				
-				int comparar_alias(word alias, word alias_aux){
-					int i, c_iguales = 0;
-					if(alias.largo != alias_aux.largo){ //compara los largos de ambos alias
-						return 1; //si son diferentes retorna 1
-					}
-					else{
-						for(i = 0; i < alias.largo; i++){ //recorre todas las posiciones de los alias
-							if(alias.letra[i] == alias_aux.letra[i]){//compara cada caracter de ambos alias
-								c_iguales++; //contador de caracteres iguales
-							}
-						}
-						if(c_iguales == alias.largo){
-							return 0;//si hay tantos caracteres iguales como el largo de los alias quiere decir que se encontró igualdad
-						}
-						else{
-							return 1;
-						}
-					}
-				}
-					
-void registrar_jugador(player players[], int *pos_players){
-	word alias_aux;
-	int existe_jugador;
-	system("clear");
-	printf("Jugador %d\n", *pos_players+1);
-	printf("\nAlias: ");
-	alias_aux = pedir_palabra();
-    existe_jugador = buscar_jugador(players, *pos_players, alias_aux);
-	if(existe_jugador != -1 && players[existe_jugador].status == 'I'){
-		players[existe_jugador].status = 'A';
-		printf("Jugador inactivo, se colocó como activo nuevamente.\n");
-	}
-	else if(existe_jugador != -1 && players[existe_jugador].status == 'A'){
-		printf("El alias ingresado ya existe.\n");
-	}
-	else{//si no se encuentra un jugador con el alias ingresado previamente, se procede a ingresar los datos
-	    players[*pos_players].alias = alias_aux;
-		printf("\nNombre: ");
-		players[*pos_players].nombre = pedir_palabra();
-		printf("\nApellido: ");
-		players[*pos_players].apellido = pedir_palabra();
-		printf("\nFecha de nacimiento con el siguiente formato dd-mm-aaaa: ");
-		players[*pos_players].fecha_nacimiento = pedir_fecha();
-	    printf("\nCedula sin puntos ni guión: ");
-		players[*pos_players].cedula = pedir_cedula();
-//Al registrar jugador su estado se convierte en Activo							players[*pos_players].status = 'A';
-		*pos_players += 1;
-		getchar();
-	}
-pausa();
-}
-
-
-void mostrar_cedula(id document){
-	for(int i = 0; i < CI; i++){
-		printf("%d", document.cedula[i]);
 	}
 }
-		
-void mostrar_palabra(word cadena){
-		for(int i = 0; i < cadena.largo; i++){
-			printf("%c", cadena.letra[i]);
-			}
-		}
