@@ -51,6 +51,7 @@ typedef struct {
 int main() {
 	int opcion;
 	do {
+		opcion =0;
 		printf("\nMenú principal:\n");
 		printf("\n1. Gestionar usuario\n");
 		printf("2. Consultas\n");
