@@ -151,40 +151,6 @@ int validar_ci(char ci[]) {
 		printf("Dígito verificador inválido. Intente nuevamente: ");
 		return 0;
 	}
-}
-
-/* int validar_fecha(char fecha[]) {
-	int d, m, a;
-	if (sscanf(fecha, "%2d-%2d-%4d", &d, &m, &a) == 3) {
-		// Verificar que los valores estén dentro de rangos válidos
-		if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && a >= 1900 && a <= 9999) {
-			return 1;  // Fecha válida
-		}
-	}
-	return 0;  // Fecha inválida
-}
-*/
-
-/* int validar_fecha(char fecha[]) {
-	int d, m, a, len = strlen(fecha);
-	
-	// Comprobar que la cadena tenga el formato correcto (dd-mm-yyyy)
-	if (len != 10 || fecha[2] != '-' || fecha[5] != '-') {
-		return 0;
-	}
-	
-	// Extraer los valores de día, mes y año
-	d = 10 * (fecha[0] - '0') + (fecha[1] - '0');
-	m = 10 * (fecha[3] - '0') + (fecha[4] - '0');
-	a = 1000 * (fecha[6] - '0') + 100 * (fecha[7] - '0') + 10 * (fecha[8] - '0') + (fecha[9] - '0');
-	
-	// Verificar que los valores estén dentro de rangos válidos
-	if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && a >= 1900 && a <= 9999) {
-		return 1;  // Fecha válida
-	}
-	
-	return 0;  // Fecha inválida
-}*/
 
 int validar_fecha(char fecha[]) {
 	int d, m, a, len = 0;
@@ -227,15 +193,6 @@ int validar_fecha(char fecha[]) {
 	
 	return 1;  // Fecha válida
 }
-
-/*int alias_unico(char alias[]) {
-	for (int i = 0; i < num_jugadores; i++) {
-		if (strcmp(jugadores[i].alias, alias) == 0) {
-			return 0;
-		}
-	}
-	return 1;
-}*/
 
 int alias_unico(char alias[]) {
 	for (int i = 0; i < num_jugadores; i++) {
