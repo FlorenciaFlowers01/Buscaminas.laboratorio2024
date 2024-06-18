@@ -38,7 +38,6 @@ typedef struct {
 	char nombre[50];
 	char apellido[50];
 	char alias[50];
-	int activo;
 	int partidas_ganadas;
 } Jugador;
 
@@ -152,7 +151,7 @@ int validar_ci(char ci[]) {
 		printf("Dígito verificador inválido. Intente nuevamente: ");
 		return 0;
 	}
-
+}
 int validar_fecha(char fecha[]) {
 	int d, m, a, len = 0;
 	for (; fecha[len] != '\0'; len++);
@@ -234,10 +233,6 @@ void alta_jugador() {
 		printf("\nAlias ya en uso. Ingrese otro alias: ");
 		scanf("%49s", nuevo.alias);
 	}
-	printf("\n¿Está activo? (s/n): ");
-	char activo;
-	scanf(" %c", &activo);
-	nuevo.activo = (activo == 's'|| activo == 'S');
 	nuevo.partidas_ganadas = 0;
 	jugadores[num_jugadores++] = nuevo;
 	printf("\nJugador %s registrado exitosamente.\n", nuevo.alias);
@@ -266,10 +261,6 @@ void modificar_jugador() {
 			scanf("%49s", jugador->nombre);
 			printf("\nApellido (%s): ", jugador->apellido);
 			scanf("%49s", jugador->apellido);
-			printf("\n¿Está activo? (s/n) (%c): ", jugador->activo ? 's' : 'n');
-			char activo;
-			scanf(" %c", &activo);
-			jugador->activo = (activo == 's'|| activo == 'S');
 			printf("\nDatos de %s modificados exitosamente.\n", alias);
 			return;
 		}
@@ -292,20 +283,9 @@ void listar_jugadores() {
 	
 	printf("\nListado de jugadores activos:\n");
 	for (int i = 0; i < num_jugadores; i++) {
-		if (jugadores[i].activo) {
 			printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
 		}
-	}
 }
-
-/*void listar_jugadores() {
-	printf("\nListado de jugadores activos:\n");
-	for (int i = 0; i < num_jugadores; i++) {
-		if (jugadores[i].activo) {
-			printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
-		}
-	}
-}*/
 
 void listar_partidas() {
 	printf("\nListado de todas las partidas:\n");
