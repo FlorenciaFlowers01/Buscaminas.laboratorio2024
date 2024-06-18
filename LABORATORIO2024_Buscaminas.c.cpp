@@ -269,24 +269,23 @@ void modificar_jugador() {
 }
 
 void listar_jugadores() {
-	// Ordenar jugadores por alias en orden alfabético utilizando ordenamiento burbuja
-	for (int i = 0; i < num_jugadores - 1; i++) {
-		for (int j = 0; j < num_jugadores - i - 1; j++) {
-			if (strcmp(jugadores[j].alias, jugadores[j + 1].alias) > 0) {
-				// Intercambiar jugadores[j] y jugadores[j + 1]
-				Jugador temp = jugadores[j];
-				jugadores[j] = jugadores[j + 1];
-				jugadores[j + 1] = temp;
-			}
-		}
-	}
-	
-	printf("\nListado de jugadores activos:\n");
-	for (int i = 0; i < num_jugadores; i++) {
-			printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
-		}
-}
+    // Ordenar jugadores por alias en orden alfabético utilizando ordenamiento burbuja
+    for (int i = 0; i < num_jugadores - 1; i++) {
+        for (int j = 0; j < num_jugadores - i - 1; j++) {
+            if (strcmp(jugadores[j].alias, jugadores[j + 1].alias) > 0) {
+                // Intercambiar jugadores[j] y jugadores[j + 1]
+                Jugador temp = jugadores[j];
+                jugadores[j] = jugadores[j + 1];
+                jugadores[j + 1] = temp;
+            }
+        }
+    }
 
+    printf("\nListado de jugadores:\n");
+    for (int i = 0; i < num_jugadores; i++) {
+        printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
+    }
+}
 void listar_partidas() {
 	printf("\nListado de todas las partidas:\n");
 	for (int i = 0; i < num_partidas; i++) {
