@@ -591,20 +591,22 @@ void jugar() {
 	}
 	if (exploradas == CASILLAS_SIN_MINAS) {
 		printf("\n¡Pfff... fue pura suerte, la próxima no será tan fácil!\n");
-	} else if (game_over) {
+	} else if (game_over == 1) {
 		printf("\n¡¡¡¡ PERDISTE !!!! Suerte la próxima, se nota que la necesitas.\n");
 	}
 	else if (game_over == 2) {
 		printf ("\n Has abandonado la partida.\n");
 	}// Almacenar la partida
+
+	
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
 	char fecha_partida[20];
 	sprintf(fecha_partida, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	strcpy(partidas[num_partidas].fecha, fecha_partida);
 	strcpy(partidas[num_partidas].alias, alias);
-        strcpy(partidas[num_partidas].resultado, 
-		   game_over == 2 ? "Abandonada" : (exploradas == CASILLAS_SIN_MINAS ? "Ganada" : "Perdida"));	num_partidas++;
+        strcpy(partidas[num_partidas].resultado, game_over == 2 ? "Abandonada" : (exploradas == CASILLAS_SIN_MINAS ? "Ganada" : "Perdida"));	
+	num_partidas++;
 	
 	// Actualizar partidas ganadas si el jugador ganó
 	if (exploradas == CASILLAS_SIN_MINAS) {
