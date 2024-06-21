@@ -162,8 +162,8 @@ int validar_fecha(char fecha[]) {
     int d, m, a, len = 0;
     for (; fecha[len] != '\0'; len++);
     
-    // Comprobar que la cadena tenga el formato correcto (dd-mm-yyyy)
-    if (len!= 10 || fecha[2]!= '-' || fecha[5]!= '-') {
+    // Comprobar que la cadena tenga el formato correcto (dd/mm/yyyy)
+    if (len!= 10 || fecha[2]!= '/' || fecha[5]!= '/') {
         return 0;
     }
     
@@ -173,7 +173,7 @@ int validar_fecha(char fecha[]) {
     a = 1000 * (fecha[6] - '0') + 100 * (fecha[7] - '0') + 10 * (fecha[8] - '0') + (fecha[9] - '0');
     
     // Verificar que los valores estén dentro de rangos válidos y no sean negativos
-    if (d < 0 || m < 0 || a < 0) {
+    if (d <= 0 || m <= 0 || a <= 0) {
         return 0;  // Fecha inválida (negativa)
     }
     
@@ -229,7 +229,7 @@ void alta_jugador() {
 	while (!validar_ci(nuevo.ci)) {
 		scanf("%8s", nuevo.ci);
 	}
-	printf("\nIngrese fecha de nacimiento (DD-MM-YYYY): ");
+	printf("\nIngrese fecha de nacimiento (DD/MM/YYYY): ");
 	scanf("%10s", nuevo.fecha_nacimiento);
 	while (!validar_fecha(nuevo.fecha_nacimiento)) {
 		printf("\nFecha inválida. Ingrese fecha de nacimiento (DD-MM-YYYY): ");
