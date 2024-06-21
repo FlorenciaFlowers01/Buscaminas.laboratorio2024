@@ -10,7 +10,7 @@
 #define MAX_MARCADAS 16
 #define CI_LEN 8
 
-//Cabezales
+//Cabezales de funciones
 int validar_ci(char ci[]);
 int validar_fecha(char fecha[]);
 int alias_unico(char alias[]);
@@ -33,7 +33,7 @@ void jugar();
 void reiniciar_estado_del_juego();  // Función para reiniciar el estado del juego
 void volver_al_menu_principal();
 
-//Estructuras
+//Estructuras de datos
 typedef struct {
 	char ci[CI_LEN + 1];
 	char fecha_nacimiento[11];
@@ -49,7 +49,7 @@ typedef struct {
 	char resultado[20];
 } Partida;
 
-
+//Funcion principal 
 int main() {
 	int opcion;
 	do {
@@ -63,7 +63,7 @@ int main() {
 		scanf("%d", &opcion);
 		limpiar_buffer();
 		switch (opcion) {
-		case 1:
+		case 1://gestionar usuario
 			printf("\n1. Alta de jugador\n");
 			printf("2. Modificación de jugador\n");
 			printf("3. Volver al menú principal\n");
@@ -81,7 +81,7 @@ int main() {
 				printf("\nOpción inválida\n");
 			}
 			break;
-		case 2:
+		case 2://Consultas
 			printf("\n1. Listado de jugadores\n");
 			printf("2. Listado de todas las partidas\n");
 			printf("3. Volver al menú principal\n");
@@ -98,10 +98,10 @@ int main() {
 				printf("\nOpción inválida\n");
 			}
 			break;
-		case 3:
+		case 3://jugar
 			jugar();
 			break;
-		case 4:
+		case 4://salir
 			printf("\nSaliendo del programa.\n");
 			break;
 		default:
@@ -110,7 +110,7 @@ int main() {
 	} while (opcion != 4);
 	return 0;
 }
-
+//Arreglos y Varaibles globales
 Jugador jugadores[100];
 int num_jugadores = 0;
 Partida partidas[100];
@@ -122,6 +122,7 @@ int exploradas = 0;
 int primera_jugada = 1;
 int game_over = 0;
 
+//Funcion para validar la cedula de identidad 
 int validar_ci(char ci[]) {
 	// Verificar la longitud de la cédula
 	if (strlen(ci) != CI_LEN) {
