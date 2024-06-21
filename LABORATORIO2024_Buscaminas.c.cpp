@@ -232,7 +232,8 @@ void alta_jugador() {
 	printf("\nIngrese fecha de nacimiento (DD/MM/YYYY): ");
 	scanf("%10s", nuevo.fecha_nacimiento);
 	while (!validar_fecha(nuevo.fecha_nacimiento)) {
-		printf("\nFecha inválida. Ingrese fecha de nacimiento (DD-MM-YYYY): ");
+		limpiar_buffer();
+		printf("\nFecha inválida. Ingrese fecha de nacimiento (DD/MM/YYYY): ");
 		scanf("%10s", nuevo.fecha_nacimiento);
 	}
 	printf("\nIngrese nombre: ");
