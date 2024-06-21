@@ -157,7 +157,7 @@ int validar_ci(char ci[]) {
 	}
 }
 
-//Se valida que la fecha se cumpla dentro de los rangos de dias de cada mes, el formato de fecha ingresado 
+//Se valida que la fecha se cumpla dentro de los rangos de dias de cada mes, el formato de fecha ingresado y no acepte numeros negativos.
 int validar_fecha(char fecha[]) {
     int d, m, a, len = 0;
     for (; fecha[len] != '\0'; len++);
@@ -221,7 +221,7 @@ int alias_unico(char alias[]) {
 	return 1;
 }
 
-//Damos de alta al jugador que el usuario ingrese
+//Damos de alta al jugador, solicitamos y guardamos los datos en las estructuras correspondientes. 
 void alta_jugador() {
 	Jugador nuevo;
 	printf("\nIngrese CI (8 dígitos): ");
