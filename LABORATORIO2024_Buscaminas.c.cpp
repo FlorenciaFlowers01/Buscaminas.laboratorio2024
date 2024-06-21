@@ -10,6 +10,7 @@
 #define MAX_MARCADAS 16
 #define CI_LEN 8
 
+//Cabezales
 int validar_ci(char ci[]);
 int validar_fecha(char fecha[]);
 int alias_unico(char alias[]);
@@ -32,6 +33,7 @@ void jugar();
 void reiniciar_estado_del_juego();  // Función para reiniciar el estado del juego
 void volver_al_menu_principal();
 
+//Estructuras
 typedef struct {
 	char ci[CI_LEN + 1];
 	char fecha_nacimiento[11];
@@ -46,6 +48,7 @@ typedef struct {
 	char alias[50];
 	char resultado[20];
 } Partida;
+
 
 int main() {
 	int opcion;
@@ -194,6 +197,7 @@ int validar_fecha(char fecha[]) {
 	return 1;  // Fecha válida
 }
 
+//Verificamos que el alias sea único y no se repita 
 int alias_unico(char alias[]) {
 	for (int i = 0; i < num_jugadores; i++) {
 		int j = 0;
@@ -210,6 +214,7 @@ int alias_unico(char alias[]) {
 	return 1;
 }
 
+//Damos de alta al jugador que el usuario ingrese
 void alta_jugador() {
 	Jugador nuevo;
 	printf("\nIngrese CI (8 dígitos): ");
@@ -238,6 +243,7 @@ void alta_jugador() {
 	printf("\nJugador %s registrado exitosamente.\n", nuevo.alias);
 }
 
+//En caso de querer modificar algún dato de un jugador ingresado
 void modificar_jugador() {
 	char alias[50];
 	printf("\nIngrese el alias del jugador a modificar: ");
@@ -268,24 +274,27 @@ void modificar_jugador() {
 	printf("\nNo se encontró ningún jugador con el alias %s.\n", alias);
 }
 
+//Listamos a los jugadores 
 void listar_jugadores() {
-    // Ordenar jugadores por alias en orden alfabético utilizando ordenamiento burbuja
-    for (int i = 0; i < num_jugadores - 1; i++) {
-        for (int j = 0; j < num_jugadores - i - 1; j++) {
-            if (strcmp(jugadores[j].alias, jugadores[j + 1].alias) > 0) {
-                // Intercambiar jugadores[j] y jugadores[j + 1]
-                Jugador temp = jugadores[j];
-                jugadores[j] = jugadores[j + 1];
-                jugadores[j + 1] = temp;
-            }
-        }
-    }
-
-    printf("\nListado de jugadores:\n");
-    for (int i = 0; i < num_jugadores; i++) {
-        printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
-    }
+	// Ordenamos jugadores por alias en orden alfabético utilizando ordenamiento burbuja
+	for (int i = 0; i < num_jugadores - 1; i++) {
+		for (int j = 0; j < num_jugadores - i - 1; j++) {
+			if (strcmp(jugadores[j].alias, jugadores[j + 1].alias) > 0) {
+				// Intercambiar jugadores[j] y jugadores[j + 1]
+				Jugador temp = jugadores[j];
+				jugadores[j] = jugadores[j + 1];
+				jugadores[j + 1] = temp;
+			}
+		}
+	}
+//Y aquí los imprimimos	
+	printf("\nListado de jugadores:\n");
+	for (int i = 0; i < num_jugadores; i++) {
+		printf("\nAlias: %s, CI: %s, Nombre: %s %s, Partidas Ganadas: %d\n", jugadores[i].alias, jugadores[i].ci, jugadores[i].nombre, jugadores[i].apellido, jugadores[i].partidas_ganadas);
+	}
 }
+
+//Se listan las partidas y se imprimen con sus resultados
 void listar_partidas() {
 	printf("\nListado de todas las partidas:\n");
 	for (int i = 0; i < num_partidas; i++) {
@@ -293,6 +302,7 @@ void listar_partidas() {
 	}
 }
 
+//En caso de rendirse o salir se reinicia el juego desde cero
 void reiniciar_estado_del_juego() {
 	marcadas = 0;
 	exploradas = 0;
@@ -301,7 +311,7 @@ void reiniciar_estado_del_juego() {
 	inicializar_tablero();
 }
 
-
+//Inicializamos el tablero
 void inicializar_tablero() {
 	for (int i = 0; i < FILAS; i++) {
 		for (int j = 0; j < COLUMNAS; j++) {
@@ -311,6 +321,7 @@ void inicializar_tablero() {
 	}
 }
 
+//Colocamos las minas
 void colocar_minas(int primera_fila, int primera_columna) {
 	int minas_colocadas = 0;
 	while (minas_colocadas < MINAS) {
@@ -324,6 +335,7 @@ void colocar_minas(int primera_fila, int primera_columna) {
 	}
 }
 
+//Se muestra en pantalla el tablero
 void mostrar_tablero() {
 	printf("\n  A B C D E F G H\n");
 	for (int i = 0; i < FILAS; i++) {
@@ -335,6 +347,7 @@ void mostrar_tablero() {
 	}
 }
 
+//Revelamos las bombas
 void revelar_todas_las_bombas() {
 	for (int i = 0; i < FILAS; i++) {
 		for (int j = 0; j < COLUMNAS; j++) {
@@ -344,6 +357,8 @@ void revelar_todas_las_bombas() {
 		}
 	}
 }
+
+//Funcion para la opción de explorar
 void explorar(int fila, int columna) {
 	if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) {
 		printf("Formato de jugada erróneo\n");
@@ -397,6 +412,7 @@ void explorar(int fila, int columna) {
 	}
 }
 
+//Funcion para la opción de marcar
 void marcar(int fila, int columna) {
 	if (fila < 0 || fila >= FILAS || columna < 0 || columna >= COLUMNAS) {
 		printf("Formato de jugada erróneo\n");
@@ -434,6 +450,7 @@ int es_casilla_adyacente_explorada(int fila, int columna) {
 	return 0;
 }
 
+//Funcion para la opción de buscar
 void buscar(int fila, int columna) {
 	
 	//En caso de que seleciona una opcion fuera del rango
@@ -524,21 +541,23 @@ void buscar(int fila, int columna) {
 	}
 }
 
-
+//Opción rendirse
 void rendirse() {
 	revelar_todas_las_bombas();
 	game_over = 2;
 }
 
+//Volvemos al menú principal
 void volver_al_menu_principal() {
 	main();
 }
 
-
+//Limpiamos la basura del buffer
 void limpiar_buffer() {
 	while (getchar() != '\n') {}
 }
 
+//Función para jugar con sus respectivas opciones e ingresando el nombre de usuario (alias) 
 void jugar() {
 	char alias[50];
 	printf("\nIngrese su alias: ");
@@ -597,7 +616,7 @@ void jugar() {
 	else if (game_over == 2) {
 		printf ("\n Has abandonado la partida.\n");
 	}// Almacenar la partida
-
+	
 	
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
@@ -605,7 +624,7 @@ void jugar() {
 	sprintf(fecha_partida, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 	strcpy(partidas[num_partidas].fecha, fecha_partida);
 	strcpy(partidas[num_partidas].alias, alias);
-        strcpy(partidas[num_partidas].resultado, game_over == 2 ? "Abandonada" : (exploradas == CASILLAS_SIN_MINAS ? "Ganada" : "Perdida"));	
+	strcpy(partidas[num_partidas].resultado, game_over == 2 ? "Abandonada" : (exploradas == CASILLAS_SIN_MINAS ? "Ganada" : "Perdida"));	
 	num_partidas++;
 	
 	// Actualizar partidas ganadas si el jugador ganó
