@@ -122,7 +122,7 @@ int exploradas = 0;
 int primera_jugada = 1;
 int game_over = 0;
 
-//Funcion para validar la cedula de identidad 
+//Funcion para validar la cedula de identidad, corrobora longitud de la misma y que el digito verificador cumpla con el algoritmo. 
 int validar_ci(char ci[]) {
 	// Verificar la longitud de la cédula
 	if (strlen(ci) != CI_LEN) {
@@ -156,46 +156,52 @@ int validar_ci(char ci[]) {
 		return 0;
 	}
 }
+
+//Se valida que la fecha se cumpla dentro de los rangos de dias de cada mes, el formato de fecha ingresado 
 int validar_fecha(char fecha[]) {
-	int d, m, a, len = 0;
-	for (; fecha[len] != '\0'; len++);
-	
-	// Comprobar que la cadena tenga el formato correcto (dd-mm-yyyy)
-	if (len!= 10 || fecha[2]!= '-' || fecha[5]!= '-') {
-		return 0;
-	}
-	
-	// Extraer los valores de día, mes y año
-	d = 10 * (fecha[0] - '0') + (fecha[1] - '0');
-	m = 10 * (fecha[3] - '0') + (fecha[4] - '0');
-	a = 1000 * (fecha[6] - '0') + 100 * (fecha[7] - '0') + 10 * (fecha[8] - '0') + (fecha[9] - '0');
-	
-	// Verificar que los valores estén dentro de rangos válidos
-	if (m < 1 || m > 12) {
-		return 0;  // Mes inválido
-	}
-	
-	if (m == 2) {  // Febrero
-		if (a % 4 == 0 && (a % 100!= 0 || a % 400 == 0)) {  // Año bisiesto
-			if (d < 1 || d > 29) {
-				return 0;  // Día inválido
-			}
-		} else {
-			if (d < 1 || d > 28) {
-				return 0;  // Día inválido
-			}
-		}
-	} else if (m == 4 || m == 6 || m == 9 || m == 11) {  // Meses con 30 días
-		if (d < 1 || d > 30) {
-			return 0;  // Día inválido
-		}
-	} else {  // Meses con 31 días
-		if (d < 1 || d > 31) {
-			return 0;  // Día inválido
-		}
-	}
-	
-	return 1;  // Fecha válida
+    int d, m, a, len = 0;
+    for (; fecha[len] != '\0'; len++);
+    
+    // Comprobar que la cadena tenga el formato correcto (dd-mm-yyyy)
+    if (len!= 10 || fecha[2]!= '-' || fecha[5]!= '-') {
+        return 0;
+    }
+    
+    // Extraer los valores de día, mes y año
+    d = 10 * (fecha[0] - '0') + (fecha[1] - '0');
+    m = 10 * (fecha[3] - '0') + (fecha[4] - '0');
+    a = 1000 * (fecha[6] - '0') + 100 * (fecha[7] - '0') + 10 * (fecha[8] - '0') + (fecha[9] - '0');
+    
+    // Verificar que los valores estén dentro de rangos válidos y no sean negativos
+    if (d < 0 || m < 0 || a < 0) {
+        return 0;  // Fecha inválida (negativa)
+    }
+    
+    if (m < 1 || m > 12) {
+        return 0;  // Mes inválido
+    }
+    
+    if (m == 2) {  // Febrero
+        if (a % 4 == 0 && (a % 100!= 0 || a % 400 == 0)) {  // Año bisiesto
+            if (d < 1 || d > 29) {
+                return 0;  // Día inválido
+            }
+        } else {
+            if (d < 1 || d > 28) {
+                return 0;  // Día inválido
+            }
+        }
+    } else if (m == 4 || m == 6 || m == 9 || m == 11) {  // Meses con 30 días
+        if (d < 1 || d > 30) {
+            return 0;  // Día inválido
+        }
+    } else {  // Meses con 31 días
+        if (d < 1 || d > 31) {
+            return 0;  // Día inválido
+        }
+    }
+    
+    return 1;  // Fecha válida
 }
 
 //Verificamos que el alias sea único y no se repita 
